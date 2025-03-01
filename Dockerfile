@@ -44,6 +44,9 @@ RUN mkdir -p ~/.config/nvim && \
     git clone https://github.com/solmidnight/.config.git /tmp/.config && \
     cp /tmp/.config/nvim/init.lua ~/.config/nvim/ && \
     rm -rf /tmp/.config
+# Pull angelite repository
+RUN git clone https://github.com/angeliteai/angelite /tmp/angelite && \
+    cp -r /tmp/angelite /workspace
 
 # Set environment variables
 ENV PATH="/root/.cargo/bin:${PATH}"
