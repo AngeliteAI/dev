@@ -42,7 +42,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p ~/.config/nvim && \
     git clone https://github.com/solmidnight/.config.git /tmp/.config && \
-    cp /tmp/.config/nvim/init.lua ~/.config/nvim/ && \
+    cp /tmp/.config/init.lua ~/.config/nvim/ && \
     rm -rf /tmp/.config
 
 # Set environment variables
