@@ -23,7 +23,10 @@ RUN dnf update -y && \
     npm \
     ripgrep \
     fd-find \
-    neovim
+    neovim \
+    openssl \
+    openssl-devel \
+    ca-certificates
 
 # Install Zig
 RUN ZIG_VERSION="0.13.0" && \
@@ -40,15 +43,20 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
 
 # Now install sccache after Rust is installed
 RUN . $HOME/.cargo/env && \
-    cargo install sccache
+    OPENSSL_DIR=/usr/include/openssl cargo install sccache
 
-# Configure sccache with Redis
+# Define ARGs for Redis credentials
+ARG REDIS_PASSWORD
+ARG GIT_TOKEN
+
+# Configure sccache with Redis (including password)
 RUN mkdir -p ~/.config/sccache && \
-    echo '[cache.redis]\nendpoint = "redis://abandon.angelite.systems"\n[cache]\ntype = "redis"' > ~/.config/sccache/config.toml
+    echo '[cache.redis]\nendpoint = "redis://abandon.angelite.systems"\npassword = "'${REDIS_PASSWORD}'"\n[cache]\ntype = "redis"' > ~/.config/sccache/config.toml
 
 # Set up Rust to use sccache
 RUN echo 'RUSTC_WRAPPER=sccache' >> ~/.cargo/env && \
-    echo 'SCCACHE_REDIS=redis://abandon.angelite.systems' >> ~/.cargo/env
+    echo 'SCCACHE_REDIS=redis://abandon.angelite.systems' >> ~/.cargo/env && \
+    echo 'SCCACHE_REDIS_PASSWORD='${REDIS_PASSWORD} >> ~/.cargo/env
 
 # Install cargo tools using sccache
 RUN . $HOME/.cargo/env && \
@@ -63,9 +71,6 @@ RUN mkdir -p ~/.config/nvim && \
 RUN git config --global user.name "solmidnight" && \
     git config --global user.email "sol@angelite.ai"
 
-# Define an ARG for the GitHub token
-ARG GIT_TOKEN
-
 # Pull angelite repository
 RUN git clone https://solmidnight:${GIT_TOKEN}@github.com/angeliteai/angelite /tmp/angelite && \
     cp -r /tmp/angelite /workspace
@@ -75,6 +80,8 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 ENV PATH="/opt/zig:${PATH}"
 ENV RUSTC_WRAPPER="sccache"
 ENV SCCACHE_REDIS="redis://abandon.angelite.systems"
+ENV SCCACHE_REDIS_PASSWORD="${REDIS_PASSWORD}"
+ENV OPENSSL_DIR="/usr/include/openssl"
 
 # Set working directory
 WORKDIR /workspace
