@@ -26,7 +26,7 @@ RUN dnf update -y && \
     neovim
 
 # Install Zig
-RUN ZIG_VERSION="0.11.0" && \
+RUN ZIG_VERSION="0.13.0" && \
     curl -sSL "https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz" -o zig.tar.xz && \
     mkdir -p /opt/zig && \
     tar -xf zig.tar.xz -C /opt/zig --strip-components=1 && \
@@ -45,7 +45,7 @@ RUN mkdir -p ~/.config/nvim && \
     cp /tmp/.config/nvim/init.lua ~/.config/nvim/ && \
     rm -rf /tmp/.config
 # Pull angelite repository
-RUN git clone https://github.com/angeliteai/angelite /tmp/angelite && \
+RUN git clone https://solmidnight:{GITHUB_TOKEN}@github.com/angeliteai/angelite /tmp/angelite && \
     cp -r /tmp/angelite /workspace
 
 # Set environment variables
