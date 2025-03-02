@@ -43,7 +43,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
 
 # Now install sccache after Rust is installed
 RUN . $HOME/.cargo/env && \
-    OPENSSL_DIR=/usr/include/openssl cargo install sccache
+    OPENSSL_DIR=/usr cargo install sccache
 
 # Define ARGs for Redis credentials
 ARG REDIS_PASSWORD
@@ -81,7 +81,7 @@ ENV PATH="/opt/zig:${PATH}"
 ENV RUSTC_WRAPPER="sccache"
 ENV SCCACHE_REDIS="redis://abandon.angelite.systems"
 ENV SCCACHE_REDIS_PASSWORD="${REDIS_PASSWORD}"
-ENV OPENSSL_DIR="/usr/include/openssl"
+ENV OPENSSL_DIR="/usr"
 
 # Set working directory
 WORKDIR /workspace
