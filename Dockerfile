@@ -1,4 +1,4 @@
-# Start with Fedora as the base image
+# Start with Fedora as the base image update
 FROM fedora:latest
 # Update the system and install basic development tools
 RUN dnf update -y && \
