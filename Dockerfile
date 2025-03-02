@@ -41,6 +41,9 @@ RUN mkdir -p ~/.config/nvim && \
     cp /tmp/.config/nvim/init.lua ~/.config/nvim/ && \
     rm -rf /tmp/.config
 
+RUN git config --global user.name "solmidinght" && \
+    git config --global user.email "sol@angelite.ai"
+
 # Define an ARG for the GitHub token
 ARG GIT_TOKEN
 
