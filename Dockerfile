@@ -60,7 +60,7 @@ RUN echo 'RUSTC_WRAPPER=sccache' >> ~/.cargo/env && \
 
 # Install cargo tools using sccache
 RUN . $HOME/.cargo/env && \
-    cargo install cargo-watch cargo-expand cargo-edit
+    cargo install cargo-watch cargo-expand cargo-edit tokei
 
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p ~/.config/nvim && \
