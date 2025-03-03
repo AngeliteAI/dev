@@ -51,7 +51,7 @@ ARG GIT_TOKEN
 
 # Configure sccache with Redis (including password)
 RUN mkdir -p ~/.config/sccache && \
-    echo '[cache.redis]\nendpoint = "redis://abandon.angelite.systems"\npassword = "'${REDIS_PASSWORD}'"\n[cache]\ntype = "redis"' > ~/.config/sccache/config.toml
+    echo '[cache.redis]\ndb = "redis://abandon.angelite.systems"\npassword = "'${REDIS_PASSWORD}'"\n[cache]\ntype = "redis"' > ~/.config/sccache/config.toml
 
 # Set up Rust to use sccache
 RUN echo 'RUSTC_WRAPPER=sccache' >> ~/.cargo/env && \
