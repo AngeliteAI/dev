@@ -29,5 +29,6 @@ jobs:
           angeliteai/dev:${{ github.sha }}
         build-args: |
           GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
