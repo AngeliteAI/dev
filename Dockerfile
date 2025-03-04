@@ -52,11 +52,12 @@ ENV OPENSSL_DIR="/usr"
 ENV PATH="/root/.cargo/bin:/opt/zig:${PATH}"
 
 # Install sccache from pre-built binary
-RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-dist-v0.10.0-x86_64-unknown-linux-musl.tar.gz -o sccache.tar.gz && \
-    tar -xzf sccache.tar.gz && \
-    mv sccache-dist-v0.10.0-x86_64-unknown-linux-musl/sccache /usr/local/bin/ && \
+RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-v0.10.0-x86_64-unknown-linux-musl.tar.gz -o sccache.tar.gz && \
+    mkdir -p sccache-extract && \
+    tar -xzf sccache.tar.gz -C sccache-extract --strip-components=1 && \
+    cp sccache-extract/sccache /usr/local/bin/ && \
     chmod +x /usr/local/bin/sccache && \
-    rm -rf sccache.tar.gz sccache-dist-v0.10.0-x86_64-unknown-linux-musl
+    rm -rf sccache.tar.gz sccache-extract
 
 # Configure sccache with Redis
 RUN mkdir -p ~/.config/sccache && \
