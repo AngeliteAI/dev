@@ -51,47 +51,26 @@ RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache
 # Install Rust through rustup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-# Add cargo binaries to PATH
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Set up sccache and ensure ARG is properly expanded
+ARG REDIS_PASSWORD
+RUN mkdir -p /root/.config/sccache && \
+    echo -e "[cache]\ntype = \"redis\"\n\n[cache.redis]\nurl = \"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" > /root/.config/sccache/config.toml && \
+    echo "export SCCACHE_REDIS=\"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" >> /root/.bashrc
 
-# Configure sccache with Redis
-RUN mkdir -p /root/.config/sccache
+# Set environment variables for sccache
+ENV PATH="/root/.cargo/bin:${PATH}" \
+    RUSTC_WRAPPER="sccache" \
+    OPENSSL_DIR="/usr" \
+    REDIS_PASSWORD=${REDIS_PASSWORD}
 
-# Create a dedicated script for setting up sccache with the proper Redis password
-RUN echo '#!/bin/bash' > /setup-sccache.sh && \
-    echo 'echo -e "[cache]\ntype = \"redis\"\n\n[cache.redis]\nurl = \"redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems\"" > /root/.config/sccache/config.toml' >> /setup-sccache.sh && \
-    echo 'export RUSTC_WRAPPER=sccache' >> /setup-sccache.sh && \
-    echo 'export SCCACHE_REDIS="redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' >> /setup-sccache.sh && \
-    echo 'export OPENSSL_DIR=/usr' >> /setup-sccache.sh && \
-    chmod +x /setup-sccache.sh && \
-    /setup-sccache.sh
+# Use a shell form RUN to ensure environment is picked up from .bashrc
+SHELL ["/bin/bash", "-c"]
 
-# Add rust components
-RUN export RUSTC_WRAPPER=sccache && \
-    export SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" && \
-    export OPENSSL_DIR=/usr && \
-    rustup component add rust-analyzer rust-src
+# Add rust components now that PATH is set
+RUN rustup component add rust-analyzer rust-src
 
-# Install cargo tools with environment variables explicitly set in each RUN command
-RUN export RUSTC_WRAPPER=sccache && \
-    export SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" && \
-    export OPENSSL_DIR=/usr && \
-    cargo install cargo-watch
-
-RUN export RUSTC_WRAPPER=sccache && \
-    export SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" && \
-    export OPENSSL_DIR=/usr && \
-    cargo install cargo-expand
-
-RUN export RUSTC_WRAPPER=sccache && \
-    export SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" && \
-    export OPENSSL_DIR=/usr && \
-    cargo install cargo-edit
-
-RUN export RUSTC_WRAPPER=sccache && \
-    export SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" && \
-    export OPENSSL_DIR=/usr && \
-    cargo install tokei
+# Install cargo tools with environment variables set at build time
+RUN SCCACHE_REDIS=redis://default:${REDIS_PASSWORD}@abandon.angelite.systems && cargo install cargo-watch cargo-expand cargo-edit tokei
 
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p /root/.config/nvim && \
