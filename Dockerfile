@@ -51,11 +51,7 @@ RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache
 # Configure sccache with Redis and proper ARG expansion
 ARG REDIS_PASSWORD
 RUN mkdir -p /root/.config/sccache && \
-    echo '[cache]
-type = "redis"
-
-[cache.redis]
-url = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > /root/.config/sccache/config.toml
+    echo '[cache]\ntype = "redis"\n\n[cache.redis]\nurl = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > /root/.config/sccache/config.toml
 
 # Install Rust through rustup - split into multiple commands
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
