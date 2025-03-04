@@ -48,9 +48,14 @@ RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache
     chmod +x /usr/local/bin/sccache && \
     rm -rf sccache.tar.gz sccache-extract
 
-# Configure sccache with Redis
+# Configure sccache with Redis and proper ARG expansion
+ARG REDIS_PASSWORD
 RUN mkdir -p /root/.config/sccache && \
-    echo '[cache]\ntype = "redis"\n\n[cache.redis]\nendpoint = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > /root/.config/sccache/config.toml
+    echo '[cache]
+type = "redis"
+
+[cache.redis]
+url = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > /root/.config/sccache/config.toml
 
 # Install Rust through rustup - split into multiple commands
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -58,19 +63,26 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 # Add cargo binaries to PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Configure Rust to use sccache
+# Configure Rust to use sccache with proper variable expansion
+ARG REDIS_PASSWORD
+# Set environment variables through shell to ensure proper expansion
+RUN echo "export RUSTC_WRAPPER=sccache" >> /etc/profile.d/sccache.sh && \
+    echo "export SCCACHE_REDIS=redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" >> /etc/profile.d/sccache.sh && \
+    echo "export OPENSSL_DIR=/usr" >> /etc/profile.d/sccache.sh && \
+    chmod +x /etc/profile.d/sccache.sh
+
+# Source the environment in each cargo install
 ENV RUSTC_WRAPPER="sccache"
-ENV SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems"
 ENV OPENSSL_DIR="/usr"
 
 # Add rust components now that PATH is set
 RUN rustup component add rust-analyzer rust-src
 
-# Install cargo tools one at a time
-RUN cargo install cargo-watch
-RUN cargo install cargo-expand
-RUN cargo install cargo-edit
-RUN cargo install tokei
+# Install cargo tools one at a time with environment properly sourced
+RUN source /etc/profile.d/sccache.sh && cargo install cargo-watch
+RUN source /etc/profile.d/sccache.sh && cargo install cargo-expand  
+RUN source /etc/profile.d/sccache.sh && cargo install cargo-edit
+RUN source /etc/profile.d/sccache.sh && cargo install tokei
 
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p /root/.config/nvim && \
