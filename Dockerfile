@@ -61,7 +61,8 @@ RUN mkdir -p /root/.config/sccache && \
 ENV PATH="/root/.cargo/bin:${PATH}" \
     RUSTC_WRAPPER="sccache" \
     OPENSSL_DIR="/usr" \
-    REDIS_PASSWORD=${REDIS_PASSWORD}
+    REDIS_PASSWORD=${REDIS_PASSWORD} \
+    SCCACHE_REDIS=redis://default:${REDIS_PASSWORD}@abandon.angelite.systems
 
 # Use a shell form RUN to ensure environment is picked up from .bashrc
 SHELL ["/bin/bash", "-c"]
@@ -70,7 +71,7 @@ SHELL ["/bin/bash", "-c"]
 RUN rustup component add rust-analyzer rust-src
 
 # Install cargo tools with environment variables set at build time
-RUN SCCACHE_REDIS=redis://default:${REDIS_PASSWORD}@abandon.angelite.systems && cargo install cargo-watch cargo-expand cargo-edit tokei
+RUN RUSTC_WRAPPER=sccache SCCACHE_REDIS=redis://default:${REDIS_PASSWORD}@abandon.angelite.systems && cargo install cargo-watch cargo-expand cargo-edit tokei
 
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p /root/.config/nvim && \
