@@ -60,7 +60,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Configure Rust to use sccache
 ENV RUSTC_WRAPPER="sccache"
-ENV SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems"
+ENV SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems"
 ENV OPENSSL_DIR="/usr"
 
 # Add rust components now that PATH is set
