@@ -55,6 +55,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ARG REDIS_PASSWORD
 RUN mkdir -p /root/.config/sccache && \
     echo -e "[cache]\ntype = \"redis\"\n\n[cache.redis]\nurl = \"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" > /root/.config/sccache/config.toml && \
+    echo "export RUSTC_WRAPPER=\"sccache\"" >> /root/.bashrc && \
     echo "export SCCACHE_REDIS=\"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" >> /root/.bashrc
 
 # Set environment variables for sccache
