@@ -51,7 +51,7 @@ RUN . $HOME/.cargo/env && \
 
 # Configure sccache with Redis - fixing the configuration
 RUN mkdir -p ~/.config/sccache && \
-    echo '[cache]\ntype = "redis"\n\n[cache.redis]\nendpoint = "redis://:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > ~/.config/sccache/config.toml
+    echo '[cache]\ntype = "redis"\n\n[cache.redis]\nendpoint = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > ~/.config/sccache/config.toml
 
 # Set up Rust to use sccache - fixed environment variables
 RUN echo 'RUSTC_WRAPPER=sccache' >> ~/.cargo/env && \
