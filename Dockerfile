@@ -48,27 +48,31 @@ RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache
     chmod +x /usr/local/bin/sccache && \
     rm -rf sccache.tar.gz sccache-extract
 
-# Configure sccache with Redis and proper ARG expansion
-RUN mkdir -p /root/.config/sccache && \
-    echo -e "[cache]\ntype = \"redis\"\n\n[cache.redis]\nurl = \"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" > /root/.config/sccache/config.toml
-
 # Install Rust through rustup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Set up sccache and ensure ARG is properly expanded
+ARG REDIS_PASSWORD
+RUN mkdir -p /root/.config/sccache && \
+    echo -e "[cache]\ntype = \"redis\"\n\n[cache.redis]\nurl = \"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" > /root/.config/sccache/config.toml && \
+    echo "export SCCACHE_REDIS=\"redis://default:${REDIS_PASSWORD}@abandon.angelite.systems\"" >> /root/.bashrc
 
 # Set environment variables for sccache
 ENV PATH="/root/.cargo/bin:${PATH}" \
     RUSTC_WRAPPER="sccache" \
-    SCCACHE_REDIS="redis://default:${REDIS_PASSWORD}@abandon.angelite.systems" \
     OPENSSL_DIR="/usr"
+
+# Use a shell form RUN to ensure environment is picked up from .bashrc
+SHELL ["/bin/bash", "-c"]
 
 # Add rust components now that PATH is set
 RUN rustup component add rust-analyzer rust-src
 
 # Install cargo tools with environment variables set at build time
-RUN cargo install cargo-watch
-RUN cargo install cargo-expand  
-RUN cargo install cargo-edit
-RUN cargo install tokei
+RUN source /root/.bashrc && cargo install cargo-watch
+RUN source /root/.bashrc && cargo install cargo-expand  
+RUN source /root/.bashrc && cargo install cargo-edit
+RUN source /root/.bashrc && cargo install tokei
 
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p /root/.config/nvim && \
