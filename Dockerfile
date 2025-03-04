@@ -1,6 +1,10 @@
 # Start with Fedora as the base image update
 FROM fedora:latest
 
+# Define ARGs for Redis credentials
+ARG REDIS_PASSWORD
+ARG GIT_TOKEN
+
 # Update the system and install basic development tools
 RUN dnf update -y && \
     dnf install -y \
@@ -41,23 +45,21 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
     . $HOME/.cargo/env && \
     rustup component add rust-analyzer rust-src
 
-# Define ARGs for Redis credentials
-ARG REDIS_PASSWORD
-ARG GIT_TOKEN
+# Configure environment for sccache before installing
+ENV RUSTC_WRAPPER="sccache"
+ENV SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems"
+ENV OPENSSL_DIR="/usr"
+ENV PATH="/root/.cargo/bin:/opt/zig:${PATH}"
 
-# Now install sccache after Rust is installed
+# Install sccache first
 RUN . $HOME/.cargo/env && \
-    OPENSSL_DIR=/usr cargo install sccache
+    cargo install sccache
 
-# Configure sccache with Redis - fixing the configuration
+# Configure sccache with Redis
 RUN mkdir -p ~/.config/sccache && \
     echo '[cache]\ntype = "redis"\n\n[cache.redis]\nendpoint = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > ~/.config/sccache/config.toml
 
-# Set up Rust to use sccache - fixed environment variables
-RUN echo 'RUSTC_WRAPPER=sccache' >> ~/.cargo/env && \
-    echo 'SCCACHE_REDIS=redis://:'${REDIS_PASSWORD}'@abandon.angelite.systems' >> ~/.cargo/env
-
-# Install cargo tools using sccache
+# Install cargo tools using sccache (now that it's properly configured)
 RUN . $HOME/.cargo/env && \
     cargo install cargo-watch cargo-expand cargo-edit tokei
 
@@ -73,13 +75,6 @@ RUN git config --global user.name "solmidnight" && \
 # Pull angelite repository
 RUN git clone https://solmidnight:${GIT_TOKEN}@github.com/angeliteai/angelite /tmp/angelite && \
     cp -r /tmp/angelite /workspace
-
-# Set environment variables
-ENV PATH="/root/.cargo/bin:${PATH}"
-ENV PATH="/opt/zig:${PATH}"
-ENV RUSTC_WRAPPER="sccache"
-ENV SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems"
-ENV OPENSSL_DIR="/usr"
 
 # Set working directory
 WORKDIR /workspace
