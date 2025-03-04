@@ -41,22 +41,21 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
     . $HOME/.cargo/env && \
     rustup component add rust-analyzer rust-src
 
-# Now install sccache after Rust is installed
-RUN . $HOME/.cargo/env && \
-    OPENSSL_DIR=/usr cargo install sccache
-
 # Define ARGs for Redis credentials
 ARG REDIS_PASSWORD
 ARG GIT_TOKEN
 
-# Configure sccache with Redis (including password)
-RUN mkdir -p ~/.config/sccache && \
-    echo '[cache.redis]\ndb = "redis://abandon.angelite.systems"\npassword = "'${REDIS_PASSWORD}'"\n[cache]\ntype = "redis"' > ~/.config/sccache/config.toml
+# Now install sccache after Rust is installed
+RUN . $HOME/.cargo/env && \
+    OPENSSL_DIR=/usr cargo install sccache
 
-# Set up Rust to use sccache
+# Configure sccache with Redis - fixing the configuration
+RUN mkdir -p ~/.config/sccache && \
+    echo '[cache]\ntype = "redis"\n\n[cache.redis]\nendpoint = "redis://:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > ~/.config/sccache/config.toml
+
+# Set up Rust to use sccache - fixed environment variables
 RUN echo 'RUSTC_WRAPPER=sccache' >> ~/.cargo/env && \
-    echo 'SCCACHE_REDIS=redis://abandon.angelite.systems' >> ~/.cargo/env && \
-    echo 'SCCACHE_REDIS_PASSWORD='${REDIS_PASSWORD} >> ~/.cargo/env
+    echo 'SCCACHE_REDIS=redis://:'${REDIS_PASSWORD}'@abandon.angelite.systems' >> ~/.cargo/env
 
 # Install cargo tools using sccache
 RUN . $HOME/.cargo/env && \
@@ -79,11 +78,9 @@ RUN git clone https://solmidnight:${GIT_TOKEN}@github.com/angeliteai/angelite /t
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV PATH="/opt/zig:${PATH}"
 ENV RUSTC_WRAPPER="sccache"
-ENV SCCACHE_REDIS="redis://abandon.angelite.systems"
-ENV SCCACHE_REDIS_PASSWORD="${REDIS_PASSWORD}"
+ENV SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems"
 ENV OPENSSL_DIR="/usr"
 
 # Set working directory
 WORKDIR /workspace
-
 CMD ["bash"]
