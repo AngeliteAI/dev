@@ -51,9 +51,12 @@ ENV SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems"
 ENV OPENSSL_DIR="/usr"
 ENV PATH="/root/.cargo/bin:/opt/zig:${PATH}"
 
-# Install sccache first
-RUN . $HOME/.cargo/env && \
-    cargo install sccache
+# Install sccache from pre-built binary
+RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache-dist-v0.10.0-x86_64-unknown-linux-musl.tar.gz -o sccache.tar.gz && \
+    tar -xzf sccache.tar.gz && \
+    mv sccache-dist-v0.10.0-x86_64-unknown-linux-musl/sccache /usr/local/bin/ && \
+    chmod +x /usr/local/bin/sccache && \
+    rm -rf sccache.tar.gz sccache-dist-v0.10.0-x86_64-unknown-linux-musl
 
 # Configure sccache with Redis
 RUN mkdir -p ~/.config/sccache && \
