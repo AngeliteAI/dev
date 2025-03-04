@@ -40,9 +40,11 @@ RUN ZIG_VERSION="0.13.0" && \
     rm zig.tar.xz && \
     ln -s /opt/zig/zig /usr/local/bin/zig
 
-# Install Rust through rustup
+# Install Rust through rustup and set PATH immediately
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
-    . $HOME/.cargo/env && \
+    echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> /root/.bashrc && \
+    echo 'export RUSTC_WRAPPER=sccache' >> /root/.bashrc && \
+    echo 'export SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems"' >> /root/.bashrc && \
     rustup component add rust-analyzer rust-src
 
 # Configure environment for sccache before installing
@@ -63,9 +65,14 @@ RUN curl -L https://github.com/mozilla/sccache/releases/download/v0.10.0/sccache
 RUN mkdir -p ~/.config/sccache && \
     echo '[cache]\ntype = "redis"\n\n[cache.redis]\nendpoint = "redis://default:'${REDIS_PASSWORD}'@abandon.angelite.systems"' > ~/.config/sccache/config.toml
 
-# Install cargo tools using sccache (now that it's properly configured)
-RUN . $HOME/.cargo/env && \
-    cargo install cargo-watch cargo-expand cargo-edit tokei
+# Install cargo tools directly with PATH and environment set
+RUN export PATH="/root/.cargo/bin:$PATH" && \
+    export RUSTC_WRAPPER=sccache && \
+    export SCCACHE_REDIS="redis://:${REDIS_PASSWORD}@abandon.angelite.systems" && \
+    cargo install cargo-watch && \
+    cargo install cargo-expand && \
+    cargo install cargo-edit && \
+    cargo install tokei
 
 # Get Neovim configuration from the GitHub repository
 RUN mkdir -p ~/.config/nvim && \
