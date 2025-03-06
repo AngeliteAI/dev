@@ -32,6 +32,8 @@ RUN dnf update -y && \
     openssl-devel \
     ca-certificates
 
+RUN curl -fsSL https://bun.sh/install | bash -s -- -y
+
 # Install Zig
 RUN ZIG_VERSION="0.13.0" && \
     curl -sSL "https://ziglang.org/download/${ZIG_VERSION}/zig-linux-x86_64-${ZIG_VERSION}.tar.xz" -o zig.tar.xz && \
@@ -66,6 +68,8 @@ ENV PATH="/root/.cargo/bin:${PATH}" \
 
 # Use a shell form RUN to ensure environment is picked up from .bashrc
 SHELL ["/bin/bash", "-c"]
+
+RUN rustup default nightly
 
 # Add rust components now that PATH is set
 RUN rustup component add rust-analyzer rust-src
