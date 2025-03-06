@@ -32,7 +32,7 @@ RUN dnf update -y && \
     openssl-devel \
     ca-certificates
 
-RUN curl -fsSL https://bun.sh/install | bash -s -- -y
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=yes bash
 
 # Install Zig
 RUN ZIG_VERSION="0.13.0" && \
