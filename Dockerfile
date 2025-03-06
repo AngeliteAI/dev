@@ -30,7 +30,9 @@ RUN dnf update -y && \
     neovim \
     openssl \
     openssl-devel \
-    ca-certificates
+    ca-certificates \
+    lldb \
+    lldb-devel
 
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=yes bash
 
