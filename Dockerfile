@@ -64,7 +64,8 @@ RUN mkdir -p /root/.config/sccache && \
 ENV PATH="/root/.cargo/bin:${PATH}" \
     RUSTC_WRAPPER="sccache" \
     OPENSSL_DIR="/usr" \
-    REDIS_PASSWORD=${REDIS_PASSWORD}
+    REDIS_PASSWORD=${REDIS_PASSWORD} \
+    X_API_KEY=${X_API_KEY}
 
 # Use a shell form RUN to ensure environment is picked up from .bashrc
 SHELL ["/bin/bash", "-c"]
