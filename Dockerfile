@@ -99,4 +99,6 @@ ENV PATH="/opt/zig:${PATH}"
 # Set working directory
 WORKDIR /workspace
 
+EXPOSE 80
+
 CMD ["bash"]
